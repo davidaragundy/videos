@@ -50,6 +50,8 @@ Options:
   --no-trim      recorded: keep the silence at the start/end of each take
   --intro <s>    Silence before the first line, matching the title card (default 4)
   --gap <s>      Silence between lines (default 0.4)
+  --tail <s>     Silence after the last line (default 30). The FFmpeg exporter stops at the
+                 shorter of video/audio, so this keeps the end card from being cut off.
   -h, --help     Show this help`;
 
 const fail = (message: string): never => {
@@ -66,6 +68,7 @@ const {values: opts, positionals} = parseArgs({
     'no-trim': {type: 'boolean', default: false},
     intro: {type: 'string', default: '4'},
     gap: {type: 'string', default: '0.4'},
+    tail: {type: 'string', default: '30'},
     help: {type: 'boolean', short: 'h', default: false},
   },
 });
@@ -83,6 +86,7 @@ const seconds = (name: string, raw: string) => {
 };
 const intro = seconds('intro', opts.intro);
 const gap = seconds('gap', opts.gap);
+const tail = seconds('tail', opts.tail);
 
 // ---------------------------------------------------------------------------------------------
 // Locate the video
@@ -403,7 +407,7 @@ const inputs = ['-f', 'lavfi', '-t', String(intro), '-i', 'anullsrc=r=44100:cl=m
 const filters = ['[0:a]aformat=sample_rates=44100:channel_layouts=mono[s0]'];
 clips.forEach((clip, i) => {
   inputs.push('-i', clip.path);
-  const pad = i < clips.length - 1 ? `,apad=pad_dur=${gap}` : '';
+  const pad = `,apad=pad_dur=${i < clips.length - 1 ? gap : tail}`;
   filters.push(
     `[${i + 1}:a]${clipFilter}aformat=sample_rates=44100:channel_layouts=mono${pad}[s${i + 1}]`,
   );

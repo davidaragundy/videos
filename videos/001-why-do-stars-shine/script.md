@@ -1,8 +1,9 @@
 ---
 title: 'Why Do Stars Shine?'
 slug: '001-why-do-stars-shine'
-status: scripted # draft → scripted → voiced → animated → rendered → published
+status: rendered # draft → scripted → voiced → animated → rendered → published
 target_length: '0:30'
+voice_provider: fish
 ---
 
 # Why Do Stars Shine?

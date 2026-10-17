@@ -20,7 +20,8 @@ Each video moves through statuses tracked in `script.md` front-matter:
    - Each line is cached as `audio/lines/<provider>/<nn>-<event>.mp3`; only changed lines are
      regenerated (`--force` redoes all), and switching providers keeps the other caches. Clips
      are joined with `--gap 0.4` s pauses after `--intro 4` s of silence so the VO starts after
-     the shared title card.
+     the shared title card. `--tail 30` s of silence follows the last line so the FFmpeg
+     exporter (which stops at the shorter of video and audio) doesn't cut off the end card.
    - It prints each event's start time on the project timeline and writes
      `audio/voiceover.json`, which scenes use to sync themselves (step 5).
    - `pnpm voice <slug> --dry-run` shows the parsed lines without calling the API.
