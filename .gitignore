@@ -4,5 +4,10 @@ output/
 .DS_Store
 *.log
 .env*
-# Raw recordings / big source footage — keep out of git (use LFS if needed)
-videos/*/audio/raw/
+!.env.example
+# Audio stays out of git (regenerate with `pnpm voice <slug>`). voiceover.json is kept: it records
+# the provider/voice/model and event times. Back up your own recordings elsewhere.
+videos/*/audio/**
+!videos/*/audio/**/
+!videos/*/audio/.gitkeep
+!videos/*/audio/voiceover.json

@@ -2,6 +2,7 @@ import '../styles/fonts.css';
 import {makeProject, ProjectSettings} from '@motion-canvas/core';
 import endCard from './scenes/endCard?scene';
 import titleCard from './scenes/titleCard?scene';
+import {VOICEOVER_VARIABLE, type Voiceover} from './utils/voiceover';
 
 export interface VideoVariables extends Record<string, unknown> {
   /** Shown on the shared title card. */
@@ -18,6 +19,8 @@ export interface VideoConfig extends Omit<ProjectSettings, 'scenes' | 'variables
   intro?: boolean;
   /** Append the shared end card. Default: true. */
   outro?: boolean;
+  /** `audio/voiceover.json` from `pnpm voice` — drives `waitForVO()` in scenes. */
+  voiceover?: Voiceover;
 }
 
 /**
@@ -28,6 +31,8 @@ export function defineVideo({
   intro = true,
   outro = true,
   scenes,
+  voiceover,
+  variables,
   ...config
 }: VideoConfig) {
   // Kick off font loading early so the first rendered frames use real fonts.
@@ -36,6 +41,7 @@ export function defineVideo({
 
   return makeProject({
     ...config,
+    variables: voiceover ? {...variables, [VOICEOVER_VARIABLE]: voiceover} : variables,
     scenes: [...(intro ? [titleCard] : []), ...scenes, ...(outro ? [endCard] : [])],
   });
 }

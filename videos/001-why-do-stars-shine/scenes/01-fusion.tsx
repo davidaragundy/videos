@@ -21,6 +21,7 @@ import {
   popIn,
   Starfield,
   stagger,
+  waitForVO,
 } from '@design';
 
 export default makeScene2D(function* (view) {
@@ -66,7 +67,7 @@ export default makeScene2D(function* (view) {
   );
 
   // — Beat 1: a star appears.
-  yield* waitUntil('star');
+  yield* waitForVO('star');
   yield* all(
     popIn(sun(), duration.slow),
     sun().glow(0.6, duration.slow, ease.enter),
@@ -76,7 +77,7 @@ export default makeScene2D(function* (view) {
   yield* waitFor(1);
 
   // — Beat 2: zoom into the core.
-  yield* waitUntil('core');
+  yield* waitForVO('core');
   yield* all(
     sun().scale(8, duration.slow, ease.move),
     sun().opacity(0.35, duration.slow, ease.move),
@@ -85,7 +86,7 @@ export default makeScene2D(function* (view) {
   );
 
   // — Beat 3: two protons collide and fuse.
-  yield* waitUntil('fuse');
+  yield* waitForVO('fuse');
   yield* stagger(protons, p => fadeUp(p, duration.fast));
   yield* all(...protons.map(p => p.x(0, duration.slow, ease.exit)));
   yield* chain(
@@ -105,7 +106,7 @@ export default makeScene2D(function* (view) {
   );
 
   // — Beat 4: energy radiates out.
-  yield* waitUntil('light');
+  yield* waitForVO('light');
   rays.forEach(r =>
     r.points([
       [0, 160],
@@ -118,6 +119,7 @@ export default makeScene2D(function* (view) {
   );
   yield* all(...rays.map(r => r.start(1, duration.slow, ease.exit)));
 
+  // No VO line for `end` — it stays an editor marker.
   yield* waitUntil('end');
   yield* all(fadeOut(helium()), fadeOut(label()), fadeOut(caption()));
 });

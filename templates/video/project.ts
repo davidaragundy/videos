@@ -6,6 +6,10 @@ export default defineVideo({
   variables: {
     title: '{{TITLE}}',
   },
-  // audio: voiceover,  // import voiceover from './audio/voiceover.wav';
+  // Voiceover: run `pnpm voice <slug>`, then uncomment (and add the imports below):
+  //   import voiceover from './audio/voiceover.mp3';
+  //   import voiceoverTiming from './audio/voiceover.json';
+  // audio: voiceover,
+  // voiceover: voiceoverTiming, // scenes' waitForVO('event') sync to the VO automatically
   scenes: [main],
 });

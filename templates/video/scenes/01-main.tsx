@@ -1,6 +1,15 @@
 import {Layout, makeScene2D, Txt} from '@motion-canvas/2d';
 import {createRef, waitUntil} from '@motion-canvas/core';
-import {Background, Caption, fadeUp, popIn, Planet, Starfield, text} from '@design';
+import {
+  Background,
+  Caption,
+  fadeUp,
+  popIn,
+  Planet,
+  Starfield,
+  text,
+  waitForVO,
+} from '@design';
 
 export default makeScene2D(function* (view) {
   const planet = createRef<Planet>();
@@ -19,8 +28,8 @@ export default makeScene2D(function* (view) {
     </>,
   );
 
-  // Drag the "intro" event in the editor timeline to sync with voiceover.
-  yield* waitUntil('intro');
+  // Waits for the "intro" VO line (or an editor marker until `pnpm voice` has run).
+  yield* waitForVO('intro');
   yield* popIn(planet());
   yield* fadeUp(heading());
   yield* caption().text('Replace me with the first line of the script.', 0.6);

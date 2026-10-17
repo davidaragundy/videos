@@ -10,6 +10,7 @@ pnpm install
 pnpm dev            # opens the editor at http://localhost:9000 — pick a video
 pnpm new "Why Is the Sky Blue?"   # scaffold videos/00N-why-is-the-sky-blue
 pnpm run list       # every video and its production status
+pnpm voice 001      # VO from script.md → audio/voiceover.mp3 (ElevenLabs/Fish/OpenAI/Google, or --provider recorded); audio isn't in git, re-run after cloning
 pnpm typecheck
 ```
 
@@ -34,7 +35,7 @@ videos/
     scenes/                 one file per beat: 01-fusion.tsx, 02-…
     assets/  audio/         video-specific images, SVGs, voiceover
 templates/video/          what `pnpm new` copies
-scripts/                  repo tooling (new-video, list-videos)
+scripts/                  repo tooling (new-video, list-videos, voice)
 docs/                     style guide + production workflow
 ```
 

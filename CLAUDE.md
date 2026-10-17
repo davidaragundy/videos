@@ -18,6 +18,7 @@ scenes and animations; the human reviews in the editor and records/approves VO.
 - Reusable visuals/animations go in `src/design/`; video folders hold only video-specific code.
 - Scenes import from `@design`; only `project.ts` imports `@design/project` (`defineVideo`).
 - `src/design/**` must use relative imports (not `@design`) to avoid cycles.
-- One scene file per narrative beat; drive timing with `waitUntil('event')` named in `script.md`.
+- One scene file per narrative beat; drive timing with events named in `script.md`: `waitForVO('event')`
+  for beats with a VO line (syncs to `audio/voiceover.json`), `waitUntil('event')` for the rest.
 - Keep `script.md` (VO, visuals, events, sources, status) in sync with the scenes.
 - Fact-check science claims and list sources in `script.md`.
