@@ -4,6 +4,7 @@ slug: '001-why-do-stars-shine'
 status: rendered # draft → scripted → voiced → animated → rendered → published
 target_length: '0:30'
 voice_provider: fish
+voice_id: '8906b5268cae414fb9b8d3da6e84413d' # Fish "Measured Storyteller"
 ---
 
 # Why Do Stars Shine?

@@ -8,6 +8,7 @@ import {
   Planet,
   Starfield,
   text,
+  voCaptions,
   waitForVO,
 } from '@design';
 
@@ -28,10 +29,12 @@ export default makeScene2D(function* (view) {
     </>,
   );
 
+  // Subtitles follow the VO line by line once `pnpm voice` has run.
+  yield voCaptions(caption());
+
   // Waits for the "intro" VO line (or an editor marker until `pnpm voice` has run).
   yield* waitForVO('intro');
   yield* popIn(planet());
   yield* fadeUp(heading());
-  yield* caption().text('Replace me with the first line of the script.', 0.6);
   yield* waitUntil('end');
 });

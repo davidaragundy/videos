@@ -1,40 +1,40 @@
 {
   "provider": "fish",
-  "voiceId": "",
+  "voiceId": "8906b5268cae414fb9b8d3da6e84413d",
   "modelId": "s2.1-pro-free",
   "intro": 4,
   "gap": 0.4,
-  "duration": 16.85,
+  "duration": 17.2,
   "events": [
     {
       "scene": "01-fusion",
       "event": "star",
       "start": 4,
-      "end": 6.63,
+      "end": 6.95,
       "file": "lines/fish/01-star.mp3",
       "text": "Every star is a giant ball of hydrogen."
     },
     {
       "scene": "01-fusion",
       "event": "core",
-      "start": 7.03,
-      "end": 11.02,
+      "start": 7.35,
+      "end": 11.19,
       "file": "lines/fish/02-core.mp3",
       "text": "Deep in its core, gravity squeezes atoms together…"
     },
     {
       "scene": "01-fusion",
       "event": "fuse",
-      "start": 11.42,
-      "end": 14.29,
+      "start": 11.59,
+      "end": 14.17,
       "file": "lines/fish/03-fuse.mp3",
       "text": "…until they fuse and release energy."
     },
     {
       "scene": "01-fusion",
       "event": "light",
-      "start": 14.69,
-      "end": 16.85,
+      "start": 14.57,
+      "end": 17.2,
       "file": "lines/fish/04-light.mp3",
       "text": "That energy is the light we see."
     }

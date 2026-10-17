@@ -24,5 +24,8 @@ export const ease = {
   bounce: easeOutElastic,
 } as const;
 
+/** Keep a VO caption on screen through pauses up to this long before hiding it (seconds). */
+export const CAPTION_HOLD = 0.8;
+
 /** Default delay between items in a staggered entrance. */
 export const STAGGER = 0.08;

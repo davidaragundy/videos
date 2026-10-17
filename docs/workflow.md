@@ -40,6 +40,11 @@ Each video moves through statuses tracked in `script.md` front-matter:
    - Times are absolute on the project timeline, so the title card and earlier scenes can be any
      length. Leave the project's **audio offset** at 0.
    - `waitForVO('event', -0.3)` starts the visuals 0.3 s before the words (or later with `+`).
+   - Subtitles: `yield voCaptions(caption())` at the top of a scene shows each VO line in the
+     `Caption` exactly while it's spoken (text from `script.md` via `voiceover.json`) and hides
+     it in pauses longer than `CAPTION_HOLD`. Don't set caption text by hand.
+   - Land visual hits on the words: start build-ups during the previous line so the payoff
+     (a collision, a reveal) happens right at its cue, instead of after a long animation.
    - If an animation runs past its next VO line, the editor logs a "late" warning: shorten it.
    - Beats with no VO line (e.g. `end`) and videos with no `voiceover.json` yet use
      `waitUntil('event')` markers: drag them on the timeline; positions are saved to the scene's

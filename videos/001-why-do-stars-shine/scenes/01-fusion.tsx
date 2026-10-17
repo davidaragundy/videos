@@ -21,6 +21,7 @@ import {
   popIn,
   Starfield,
   stagger,
+  voCaptions,
   waitForVO,
 } from '@design';
 
@@ -66,29 +67,30 @@ export default makeScene2D(function* (view) {
     </>,
   );
 
+  // Subtitles follow the voiceover line by line (text + timing from voiceover.json).
+  yield voCaptions(caption());
+
   // — Beat 1: a star appears.
   yield* waitForVO('star');
-  yield* all(
-    popIn(sun(), duration.slow),
-    sun().glow(0.6, duration.slow, ease.enter),
-    caption().text('Every star is a giant ball of hydrogen.', duration.base),
-  );
+  yield* all(popIn(sun(), duration.slow), sun().glow(0.6, duration.slow, ease.enter));
   yield float(sun(), 8, 4);
   yield* waitFor(1);
 
-  // — Beat 2: zoom into the core.
+  // — Beat 2: zoom into the core; protons get squeezed towards each other.
   yield* waitForVO('core');
   yield* all(
     sun().scale(8, duration.slow, ease.move),
     sun().opacity(0.35, duration.slow, ease.move),
     stars().opacity(0, duration.base),
-    caption().text('Deep in its core, gravity squeezes atoms together…', duration.base),
+    stagger(protons, p => fadeUp(p, duration.fast)),
+  );
+  yield* all(
+    ...protons.map((p, i) => p.x((i === 0 ? -1 : 1) * 150, duration.slow * 2, ease.move)),
   );
 
-  // — Beat 3: two protons collide and fuse.
+  // — Beat 3: "…until they fuse" — the collision lands on the word.
   yield* waitForVO('fuse');
-  yield* stagger(protons, p => fadeUp(p, duration.fast));
-  yield* all(...protons.map(p => p.x(0, duration.slow, ease.exit)));
+  yield* all(...protons.map(p => p.x(0, duration.base, ease.exit)));
   yield* chain(
     all(
       flash().size(600, duration.fast, ease.enter),
@@ -99,11 +101,7 @@ export default makeScene2D(function* (view) {
       ...protons.map(p => p.opacity(0, duration.instant)),
     ),
   );
-  yield* all(
-    popIn(helium()),
-    label().opacity(1, duration.base),
-    caption().text('…until they fuse and release energy.', duration.base),
-  );
+  yield* all(popIn(helium()), label().opacity(1, duration.base));
 
   // — Beat 4: energy radiates out.
   yield* waitForVO('light');
@@ -113,13 +111,10 @@ export default makeScene2D(function* (view) {
       [0, 900],
     ]),
   );
-  yield* all(
-    stagger(rays, r => (r as Line).end(1, duration.slow, ease.enter), 0.04),
-    caption().text('That energy is the light we see.', duration.base),
-  );
+  yield* stagger(rays, r => (r as Line).end(1, duration.slow, ease.enter), 0.04);
   yield* all(...rays.map(r => r.start(1, duration.slow, ease.exit)));
 
   // No VO line for `end` — it stays an editor marker.
   yield* waitUntil('end');
-  yield* all(fadeOut(helium()), fadeOut(label()), fadeOut(caption()));
+  yield* all(fadeOut(helium()), fadeOut(label()));
 });
