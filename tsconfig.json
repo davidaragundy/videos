@@ -1,0 +1,19 @@
+{
+  "extends": "@motion-canvas/2d/tsconfig.project.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@design": ["src/design/index.ts"],
+      "@design/*": ["src/design/*"]
+    },
+    "types": ["node", "@motion-canvas/core/project"],
+    "noEmit": true,
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true
+  },
+  "include": ["src", "videos", "templates", "scripts", "vite.config.ts"]
+}

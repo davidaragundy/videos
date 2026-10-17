@@ -1,0 +1,123 @@
+import {Circle, Layout, Line, makeScene2D, Node, Txt} from '@motion-canvas/2d';
+import {
+  all,
+  chain,
+  createRef,
+  createRefArray,
+  waitFor,
+  waitUntil,
+} from '@motion-canvas/core';
+import {
+  Background,
+  Caption,
+  duration,
+  ease,
+  fadeOut,
+  fadeUp,
+  float,
+  Label,
+  palette,
+  Planet,
+  popIn,
+  Starfield,
+  stagger,
+} from '@design';
+
+export default makeScene2D(function* (view) {
+  const stars = createRef<Node>();
+  const sun = createRef<Planet>();
+  const caption = createRef<Txt>();
+  const protons = createRefArray<Circle>();
+  const helium = createRef<Circle>();
+  const flash = createRef<Circle>();
+  const label = createRef<Layout>();
+  const rays = createRefArray<Line>();
+
+  view.add(
+    <>
+      <Background gradient="space" />
+      <Starfield ref={stars} seed={3} />
+      {Array.from({length: 12}, (_, i) => (
+        <Line
+          ref={rays}
+          points={[
+            [0, 0],
+            [0, -1],
+          ]}
+          rotation={i * 30}
+          stroke={palette.sun}
+          lineWidth={10}
+          lineCap="round"
+          start={0}
+          end={0}
+        />
+      ))}
+      <Planet ref={sun} radius={220} color={palette.sun} glow={0} scale={0} />
+      {[-1, 1].map(side => (
+        <Circle ref={protons} x={side * 700} size={70} fill={palette.coral} opacity={0} />
+      ))}
+      <Circle ref={flash} size={0} fill={palette.white} opacity={0} />
+      <Circle ref={helium} size={110} fill={palette.mint} scale={0} />
+      <Layout ref={label} y={180} opacity={0}>
+        <Label text="Helium" color={palette.mint} textColor={palette.ink} />
+      </Layout>
+      <Caption textRef={caption} />
+    </>,
+  );
+
+  // — Beat 1: a star appears.
+  yield* waitUntil('star');
+  yield* all(
+    popIn(sun(), duration.slow),
+    sun().glow(0.6, duration.slow, ease.enter),
+    caption().text('Every star is a giant ball of hydrogen.', duration.base),
+  );
+  yield float(sun(), 8, 4);
+  yield* waitFor(1);
+
+  // — Beat 2: zoom into the core.
+  yield* waitUntil('core');
+  yield* all(
+    sun().scale(8, duration.slow, ease.move),
+    sun().opacity(0.35, duration.slow, ease.move),
+    stars().opacity(0, duration.base),
+    caption().text('Deep in its core, gravity squeezes atoms together…', duration.base),
+  );
+
+  // — Beat 3: two protons collide and fuse.
+  yield* waitUntil('fuse');
+  yield* stagger(protons, p => fadeUp(p, duration.fast));
+  yield* all(...protons.map(p => p.x(0, duration.slow, ease.exit)));
+  yield* chain(
+    all(
+      flash().size(600, duration.fast, ease.enter),
+      flash().opacity(1, duration.instant),
+    ),
+    all(
+      flash().opacity(0, duration.base),
+      ...protons.map(p => p.opacity(0, duration.instant)),
+    ),
+  );
+  yield* all(
+    popIn(helium()),
+    label().opacity(1, duration.base),
+    caption().text('…until they fuse and release energy.', duration.base),
+  );
+
+  // — Beat 4: energy radiates out.
+  yield* waitUntil('light');
+  rays.forEach(r =>
+    r.points([
+      [0, 160],
+      [0, 900],
+    ]),
+  );
+  yield* all(
+    stagger(rays, r => (r as Line).end(1, duration.slow, ease.enter), 0.04),
+    caption().text('That energy is the light we see.', duration.base),
+  );
+  yield* all(...rays.map(r => r.start(1, duration.slow, ease.exit)));
+
+  yield* waitUntil('end');
+  yield* all(fadeOut(helium()), fadeOut(label()), fadeOut(caption()));
+});

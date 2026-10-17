@@ -1,0 +1,8 @@
+node_modules/
+dist/
+output/
+.DS_Store
+*.log
+.env*
+# Raw recordings / big source footage — keep out of git (use LFS if needed)
+videos/*/audio/raw/

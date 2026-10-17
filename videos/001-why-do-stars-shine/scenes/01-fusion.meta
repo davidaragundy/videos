@@ -1,0 +1,26 @@
+{
+  "version": 0,
+  "timeEvents": [
+    {
+      "name": "star",
+      "targetTime": 0
+    },
+    {
+      "name": "core",
+      "targetTime": 2.2
+    },
+    {
+      "name": "fuse",
+      "targetTime": 3.4000000000000004
+    },
+    {
+      "name": "light",
+      "targetTime": 6.4799999999999995
+    },
+    {
+      "name": "end",
+      "targetTime": 9.319999999999999
+    }
+  ],
+  "seed": 3166685862
+}
