@@ -3,7 +3,8 @@
 Each video moves through statuses tracked in `script.md` front-matter:
 `draft → scripted → voiced → animated → rendered → published`.
 
-1. **Scaffold** — `pnpm new "Title"` creates `videos/00N-slug/` from `templates/video`.
+1. **Scaffold** — `pnpm new "Title"` creates `videos/00N-slug/` from `templates/video`
+   (`--vertical` for a 1080×1920 TikTok / Reels / Shorts video).
 2. **Script** — write `script.md`: hook, then one section per scene with VO lines, visuals and the
    timing **event** names that scene will `waitUntil(...)`. Add sources.
 3. **Voiceover** — either drop a recording in `audio/` (e.g. `voiceover.wav`), or generate one:
@@ -25,6 +26,8 @@ Each video moves through statuses tracked in `script.md` front-matter:
    - It prints each event's start time on the project timeline and writes
      `audio/voiceover.json`, which scenes use to sync themselves (step 5).
    - `pnpm voice <slug> --dry-run` shows the parsed lines without calling the API.
+   - Pacing per video: `vo_intro:`, `vo_gap:` and `vo_tail:` in front-matter set the defaults for
+     `--intro`, `--gap` and `--tail` (vertical videos have no title card, so use `vo_intro: 0.3`).
    - **Your own voice:** `--provider recorded` (or `voice_provider: recorded`) skips TTS and
      uses one take per line from `audio/lines/recorded/<nn>-<event>.<wav|m4a|mp3|…>`.
      `--dry-run` prints the recording checklist (✔ recorded, · still to do) with the exact
@@ -40,6 +43,9 @@ Each video moves through statuses tracked in `script.md` front-matter:
    - Times are absolute on the project timeline, so the title card and earlier scenes can be any
      length. Leave the project's **audio offset** at 0.
    - `waitForVO('event', -0.3)` starts the visuals 0.3 s before the words (or later with `+`).
+   - `waitForVOEnd('event', -0.8)` waits for a line to _finish_ — land a payoff on the last word.
+   - End each scene with `yield* waitForVO('<next scene's first event>', -duration.fast)` so a
+     short transition finishes right as the next line starts.
    - Subtitles: `yield voCaptions(caption())` at the top of a scene shows each VO line in the
      `Caption` exactly while it's spoken (text from `script.md` via `voiceover.json`) and hides
      it in pauses longer than `CAPTION_HOLD`. Don't set caption text by hand.

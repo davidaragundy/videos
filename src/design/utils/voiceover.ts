@@ -1,4 +1,4 @@
-import {Node, Txt} from '@motion-canvas/2d';
+import type {Captions} from '../components/Captions';
 import {
   ThreadGenerator,
   useLogger,
@@ -8,7 +8,7 @@ import {
   waitFor,
   waitUntil,
 } from '@motion-canvas/core';
-import {CAPTION_HOLD, duration, ease} from '../theme';
+import {CAPTION_HOLD} from '../theme';
 
 /** Shape of `audio/voiceover.json`, written by `pnpm voice`. */
 export interface Voiceover {
@@ -41,6 +41,22 @@ export const VOICEOVER_VARIABLE = 'voiceover';
  * `waitUntil(event)`, i.e. an editor marker you drag by hand.
  */
 export function* waitForVO(event: string, offset = 0): ThreadGenerator {
+  yield* waitForCue(event, offset, 'start');
+}
+
+/**
+ * Like `waitForVO`, but waits until the VO line for `event` has finished — e.g. to hold the
+ * last shot of a video until the narrator stops talking.
+ */
+export function* waitForVOEnd(event: string, offset = 0): ThreadGenerator {
+  yield* waitForCue(event, offset, 'end');
+}
+
+function* waitForCue(
+  event: string,
+  offset: number,
+  edge: 'start' | 'end',
+): ThreadGenerator {
   const scene = useScene();
   const voiceover = useVoiceover();
   // Prefer this scene's line (event names may repeat across scenes), then any scene.
@@ -58,7 +74,7 @@ export function* waitForVO(event: string, offset = 0): ThreadGenerator {
     return;
   }
 
-  const wait = cue.start + offset - projectTime();
+  const wait = cue[edge] + offset - projectTime();
   if (wait < -usePlayback().framesToSeconds(1)) {
     useLogger().warn(
       `waitForVO: "${event}" is ${(-wait).toFixed(2)}s late — the animation before it in ` +
@@ -69,30 +85,99 @@ export function* waitForVO(event: string, offset = 0): ThreadGenerator {
 }
 
 /**
- * Subtitles straight from the voiceover: shows each of this scene's VO lines in `caption` exactly
- * while it is spoken, and hides the caption box in pauses longer than `CAPTION_HOLD`.
- * Run it in the background at the top of a scene: `yield voCaptions(caption());`.
+ * Subtitles straight from the voiceover, short-form style: each of this scene's VO lines is
+ * split into chunks of a few words, shown while spoken, with the current word highlighted.
+ * Word times are estimated from letter counts inside each line's exact start/end, so they
+ * follow any voice closely. Run in the background: `yield voCaptions(captions());`.
  * Does nothing until the video has a `voiceover.json`.
  */
-export function* voCaptions(caption: Txt): ThreadGenerator {
+export function* voCaptions(captions: Captions): ThreadGenerator {
   const voiceover = useVoiceover();
   if (!voiceover) return;
   const scene = useScene();
   const lines = voiceover.events.filter(e => e.scene === scene.name);
-  // Fade the caption's box (its parent) so no empty pill is left on screen.
-  const box: Node = caption.parent() ?? caption;
-  box.opacity(0);
+  captions.opacity(0);
 
   for (const [i, line] of lines.entries()) {
-    yield* waitFor(Math.max(0, line.start - projectTime()));
-    caption.text(line.text);
-    yield* box.opacity(1, duration.instant, ease.enter);
-    yield* waitFor(Math.max(0, line.end - projectTime()));
-    const next = lines[i + 1];
-    if (!next || next.start - line.end > CAPTION_HOLD) {
-      yield* box.opacity(0, duration.instant, ease.exit);
+    const {words, starts} = wordTimes(line);
+
+    for (const chunk of chunkWords(words)) {
+      yield* waitFor(Math.max(0, starts[chunk.from] - projectTime()));
+      yield* captions.show(words.slice(chunk.from, chunk.to));
+      for (let w = chunk.from; w < chunk.to; w++) {
+        yield* waitFor(Math.max(0, starts[w] - projectTime()));
+        captions.highlight(w - chunk.from);
+      }
     }
+    yield* waitFor(Math.max(0, line.end - projectTime()));
+    captions.highlight(-1);
+    const next = lines[i + 1];
+    if (!next || next.start - line.end > CAPTION_HOLD) yield* captions.hide();
   }
+}
+
+/**
+ * Wait until a given word of an event's VO line is spoken (first match, case-insensitive,
+ * punctuation ignored), e.g. `waitForVOWord('grow', 'distance')`. Word times are estimated
+ * from letter counts within the line, so expect ±0.2 s.
+ */
+export function* waitForVOWord(event: string, word: string, offset = 0): ThreadGenerator {
+  const voiceover = useVoiceover();
+  const scene = useScene();
+  const line =
+    voiceover?.events.find(e => e.event === event && e.scene === scene.name) ??
+    voiceover?.events.find(e => e.event === event);
+  if (!line) {
+    yield* waitForVO(event, offset);
+    return;
+  }
+  const clean = (w: string) => w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+  const {words, starts} = wordTimes(line);
+  const i = words.findIndex(w => clean(w) === clean(word));
+  if (i < 0) {
+    useLogger().warn(`waitForVOWord: "${word}" is not in the "${event}" line.`);
+    yield* waitForVO(event, offset);
+    return;
+  }
+  yield* waitFor(Math.max(0, starts[i] + offset - projectTime()));
+}
+
+/** Estimated start time of each word in a VO line: longer words take longer, punctuation adds a breath. */
+function wordTimes(line: {text: string; start: number; end: number}) {
+  const words = line.text.split(/\s+/).filter(Boolean);
+  const weights = words.map(
+    w => w.replace(/[^\p{L}\p{N}]/gu, '').length + 2 + (/[,.;:!?…—]$/.test(w) ? 3 : 0),
+  );
+  const total = weights.reduce((a, b) => a + b, 0);
+  const span = line.end - line.start;
+  let acc = 0;
+  const starts = weights.map(w => {
+    const t = line.start + (acc / total) * span;
+    acc += w;
+    return t;
+  });
+  return {words, starts};
+}
+
+/** Group words into caption chunks: ≤ 4 words / ~22 letters, breaking after punctuation. */
+function chunkWords(words: string[]) {
+  const chunks: {from: number; to: number}[] = [];
+  let from = 0;
+  let letters = 0;
+  words.forEach((word, i) => {
+    letters += word.length + 1;
+    const end =
+      i === words.length - 1 ||
+      i - from + 1 >= 4 ||
+      letters + words[i + 1].length > 22 ||
+      /[,.;:!?…—]$/.test(word);
+    if (end) {
+      chunks.push({from, to: i + 1});
+      from = i + 1;
+      letters = 0;
+    }
+  });
+  return chunks;
 }
 
 function useVoiceover() {

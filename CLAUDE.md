@@ -15,11 +15,16 @@ scenes and animations; the human reviews in the editor and records/approves VO.
   package.json — the Motion Canvas Vite plugin is CJS; Node scripts use `.mts`.
 - Follow `docs/style-guide.md`. Never hard-code colours, font sizes, durations or easings in scenes —
   use tokens from `@design`. Missing token? Add it to `src/design/theme/`.
-- Reusable visuals/animations go in `src/design/`; video folders hold only video-specific code.
+- Reusable visuals/animations go in `src/design/`; video folders hold only video-specific code
+  (e.g. `videos/<slug>/components/`).
+- Lay out with `useFrame()` so scenes work in both formats (`defineVideo({format})`: landscape or
+  vertical). Vertical = short-form: follow the short-form rules in `docs/style-guide.md`.
 - Scenes import from `@design`; only `project.ts` imports `@design/project` (`defineVideo`).
 - `src/design/**` must use relative imports (not `@design`) to avoid cycles.
 - One scene file per narrative beat; drive timing with events named in `script.md`: `waitForVO('event')`
   for beats with a VO line (syncs to `audio/voiceover.json`), `waitUntil('event')` for the rest.
-  Captions come from `voCaptions(caption())`, never hand-set text.
+  Captions come from `<Captions />` + `voCaptions(captions())`, never hand-set text;
+  `waitForVOWord('event', 'word')` lands a visual on a word.
+- Every scene: `<Grain />` as the last visual layer, then `<Captions />`, then `<Wipe />`.
 - Keep `script.md` (VO, visuals, events, sources, status) in sync with the scenes.
 - Fact-check science claims and list sources in `script.md`.

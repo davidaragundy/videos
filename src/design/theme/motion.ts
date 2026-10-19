@@ -1,31 +1,32 @@
 import {
-  easeInCubic,
+  createEaseOutBack,
   easeInOutCubic,
-  easeOutBack,
-  easeOutCubic,
+  easeInQuart,
   easeOutElastic,
+  easeOutQuart,
 } from '@motion-canvas/core';
 
-/** Standard durations in seconds. */
+/** Standard durations in seconds. Unhurried — premium motion settles, it doesn't snap. */
 export const duration = {
   instant: 0.15,
-  fast: 0.3,
-  base: 0.6,
-  slow: 1.2,
-  scene: 0.8, // scene transitions
+  fast: 0.35,
+  base: 0.7,
+  slow: 1.4,
+  scene: 0.6, // wave-wipe transitions
 } as const;
 
 /** Named easings so every video moves with the same personality. */
 export const ease = {
-  enter: easeOutCubic,
-  exit: easeInCubic,
+  enter: easeOutQuart,
+  exit: easeInQuart,
   move: easeInOutCubic,
-  pop: easeOutBack,
+  /** Gentle overshoot — a settle, not a bounce. */
+  pop: createEaseOutBack(1.1),
   bounce: easeOutElastic,
 } as const;
 
-/** Keep a VO caption on screen through pauses up to this long before hiding it (seconds). */
-export const CAPTION_HOLD = 0.8;
-
 /** Default delay between items in a staggered entrance. */
-export const STAGGER = 0.08;
+export const STAGGER = 0.09;
+
+/** Captions stay up through pauses shorter than this (seconds) instead of blinking off. */
+export const CAPTION_HOLD = 0.8;

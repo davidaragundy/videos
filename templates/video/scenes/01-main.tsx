@@ -2,7 +2,8 @@ import {Layout, makeScene2D, Txt} from '@motion-canvas/2d';
 import {createRef, waitUntil} from '@motion-canvas/core';
 import {
   Background,
-  Caption,
+  Captions,
+  Grain,
   fadeUp,
   popIn,
   Planet,
@@ -15,7 +16,7 @@ import {
 export default makeScene2D(function* (view) {
   const planet = createRef<Planet>();
   const heading = createRef<Layout>();
-  const caption = createRef<Txt>();
+  const captions = createRef<Captions>();
 
   view.add(
     <>
@@ -25,12 +26,13 @@ export default makeScene2D(function* (view) {
       <Layout ref={heading} y={-360}>
         <Txt {...text.h2} text="Start here" />
       </Layout>
-      <Caption textRef={caption} />
+      <Grain />
+      <Captions ref={captions} />
     </>,
   );
 
   // Subtitles follow the VO line by line once `pnpm voice` has run.
-  yield voCaptions(caption());
+  yield voCaptions(captions());
 
   // Waits for the "intro" VO line (or an editor marker until `pnpm voice` has run).
   yield* waitForVO('intro');

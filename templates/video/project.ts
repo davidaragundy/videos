@@ -3,6 +3,7 @@ import main from './scenes/01-main?scene';
 
 export default defineVideo({
   name: '{{SLUG}}',
+  format: 'landscape', // or 'vertical' (TikTok / Reels / Shorts)
   variables: {
     title: '{{TITLE}}',
   },

@@ -1,66 +1,97 @@
 /**
- * The colour palette shared by every video.
+ * "Coastal editorial" palette: warm, sun-faded print colours — terracotta, cream and apricot
+ * from mid-century posters, plus a muted sea teal and sand for anything coastal.
  *
- * Rule of thumb: dark, desaturated backgrounds + a few saturated, warm
- * accents per shot. Never use more than ~3 accent hues in one frame.
+ * Rules: flat fills, no outlines, no pure white or black. One dark ground per shot
+ * (terracotta, sea or ink) or one light ground (cream, sand) — never mix two darks.
  */
+const core = {
+  // Earth.
+  terracotta: '#97463C',
+  clay: '#B9614B',
+  ink: '#33201B',
+  // Light grounds.
+  cream: '#F2E3CB',
+  paper: '#F8EFE1',
+  sand: '#E6C79C',
+  sandDark: '#C99A68',
+  // Warm accents.
+  apricot: '#F3B26B',
+  orange: '#EB9842',
+  sun: '#F2A23A',
+  coral: '#DE6A4E',
+  blush: '#E9A38C',
+  // Sea.
+  seaDeep: '#1E4B52',
+  sea: '#2D7470',
+  seaLight: '#6FAFA3',
+  foam: '#F6EAD6',
+  sage: '#9DB89A',
+} as const;
+
 export const palette = {
-  // Backgrounds — deep space blues, darkest to lightest.
-  night900: '#070B1E',
-  night800: '#0E1433',
-  night700: '#18214D',
-  night600: '#253170',
-  night500: '#36469A',
-
-  // Neutrals.
-  white: '#F7F4EC',
-  cloud: '#C9CEE8',
-  slate: '#7B83AD',
-  ink: '#05070F',
-
-  // Accents.
-  sun: '#FFC93C',
-  amber: '#FF9F2E',
-  coral: '#FF5E5B',
-  pink: '#FF6FB5',
-  violet: '#9B6BFF',
-  sky: '#3DA9FF',
-  cyan: '#3DE3E0',
-  mint: '#5CE6A6',
-  lime: '#A6E34B',
+  ...core,
+  // Aliases kept so older videos keep working — they map onto the coastal palette.
+  white: core.paper,
+  cloud: core.cream,
+  slate: core.blush,
+  mint: core.seaLight,
+  lime: core.sage,
+  sky: core.seaLight,
+  cyan: core.seaLight,
+  pink: core.blush,
+  violet: core.clay,
+  amber: core.orange,
+  skin: core.apricot,
+  night900: core.ink,
+  night800: '#4A2A23',
+  night700: core.terracotta,
+  night600: core.clay,
+  night500: core.blush,
 } as const;
 
 export type PaletteColor = keyof typeof palette;
 
 /** Semantic colour roles. Prefer these over raw palette values in scenes. */
 export const colors = {
-  background: palette.night800,
-  backgroundDeep: palette.night900,
-  backgroundLight: palette.night600,
-  surface: palette.night700,
+  background: core.terracotta,
+  backgroundDeep: core.ink,
+  backgroundLight: core.cream,
+  surface: core.clay,
 
-  text: palette.white,
-  textMuted: palette.cloud,
-  textSubtle: palette.slate,
+  /** Text on dark grounds. */
+  text: core.cream,
+  textMuted: core.apricot,
+  textSubtle: core.blush,
+  /** Text on light grounds. */
+  textDark: core.ink,
+  textDarkMuted: core.terracotta,
 
-  primary: palette.sun,
-  secondary: palette.sky,
-  tertiary: palette.pink,
+  primary: core.apricot,
+  secondary: core.seaLight,
+  tertiary: core.coral,
 
-  positive: palette.mint,
-  negative: palette.coral,
-  highlight: palette.amber,
+  positive: core.sage,
+  negative: core.coral,
+  highlight: core.sun,
 
-  shadow: '#00000055',
+  shadow: '#33201B55',
 } as const;
 
-/** Background gradient presets (top → bottom). */
+/** Background gradients (top → bottom). Keep them subtle — it's print, not neon. */
 export const gradients = {
-  space: [palette.night900, palette.night700],
-  dusk: [palette.night800, '#3A2E6E'],
-  ocean: ['#04213A', '#0B4F6C'],
-  forest: ['#0B2A1F', '#1E5B3A'],
-  ember: ['#1F0B1E', '#5A1E3A'],
+  terracotta: [core.clay, core.terracotta],
+  cream: [core.paper, core.cream],
+  beach: [core.paper, '#F3D3A8'],
+  sunset: ['#F6E2C4', '#EFB27A'],
+  sea: [core.sea, core.seaDeep],
+  ink: ['#4A2A23', core.ink],
+  // Legacy names.
+  space: ['#4A2A23', core.ink],
+  dusk: [core.clay, core.terracotta],
+  ocean: [core.sea, core.seaDeep],
+  forest: ['#5E7A5A', '#34483A'],
+  ember: [core.clay, '#6E2F28'],
 } as const satisfies Record<string, readonly [string, string]>;
 
 export type GradientName = keyof typeof gradients;

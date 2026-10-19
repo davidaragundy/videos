@@ -3,7 +3,7 @@
   "shared": {
     "background": "rgb(14,20,51)",
     "range": [0, null],
-    "size": {"x": 1920, "y": 1080},
+    "size": {"x": {{WIDTH}}, "y": {{HEIGHT}}},
     "audioOffset": 0
   },
   "preview": {

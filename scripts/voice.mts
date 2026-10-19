@@ -48,9 +48,10 @@ Options:
   --dry-run      Print the parsed VO lines and exit (no API key or network needed)
   --force        Regenerate every clip, ignoring the cache
   --no-trim      recorded: keep the silence at the start/end of each take
-  --intro <s>    Silence before the first line, matching the title card (default 4)
-  --gap <s>      Silence between lines (default 0.4)
-  --tail <s>     Silence after the last line (default 30). The FFmpeg exporter stops at the
+  --intro <s>    Silence before the first line, matching the title card (default:
+                 front-matter \`vo_intro:\`, else 4)
+  --gap <s>      Silence between lines (default: \`vo_gap:\`, else 0.4)
+  --tail <s>     Silence after the last line (default: \`vo_tail:\`, else 30). The FFmpeg exporter stops at the
                  shorter of video/audio, so this keeps the end card from being cut off.
   -h, --help     Show this help`;
 
@@ -66,9 +67,9 @@ const {values: opts, positionals} = parseArgs({
     'dry-run': {type: 'boolean', default: false},
     force: {type: 'boolean', default: false},
     'no-trim': {type: 'boolean', default: false},
-    intro: {type: 'string', default: '4'},
-    gap: {type: 'string', default: '0.4'},
-    tail: {type: 'string', default: '30'},
+    intro: {type: 'string'},
+    gap: {type: 'string'},
+    tail: {type: 'string'},
     help: {type: 'boolean', short: 'h', default: false},
   },
 });
@@ -84,9 +85,6 @@ const seconds = (name: string, raw: string) => {
     fail(`--${name} must be a number of seconds, got "${raw}".`);
   return n;
 };
-const intro = seconds('intro', opts.intro);
-const gap = seconds('gap', opts.gap);
-const tail = seconds('tail', opts.tail);
 
 // ---------------------------------------------------------------------------------------------
 // Locate the video
@@ -121,6 +119,11 @@ const field = (key: string) =>
   undefined;
 
 const env = (key: string) => process.env[key]?.trim() || undefined;
+
+// Pacing: flag, then `vo_intro:` / `vo_gap:` / `vo_tail:` in front-matter, then defaults.
+const intro = seconds('intro', opts.intro ?? field('vo_intro') ?? '4');
+const gap = seconds('gap', opts.gap ?? field('vo_gap') ?? '0.4');
+const tail = seconds('tail', opts.tail ?? field('vo_tail') ?? '30');
 
 const providerId = (
   opts.provider ??

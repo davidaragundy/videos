@@ -1,5 +1,15 @@
 import {Node} from '@motion-canvas/2d';
-import {all, loop, sequence, ThreadGenerator, TimingFunction} from '@motion-canvas/core';
+import {
+  all,
+  loop,
+  sequence,
+  SignalValue,
+  SimpleSignal,
+  ThreadGenerator,
+  TimingFunction,
+  unwrap,
+  usePlayback,
+} from '@motion-canvas/core';
 import {duration, ease, STAGGER} from '../theme';
 
 /** Scale from 0 with a little overshoot. The house "something appears" move. */
@@ -57,4 +67,19 @@ export function* stagger(
   delay = STAGGER,
 ): ThreadGenerator {
   yield* sequence(delay, ...nodes.map(animate));
+}
+
+/**
+ * Advance a numeric signal forever at `rate` units per second (a signal or function works too,
+ * so the speed itself can be animated). Run in the background: `yield drive(wave().phase, 3)`.
+ */
+export function* drive(
+  value: SimpleSignal<number, any>,
+  rate: SignalValue<number>,
+): ThreadGenerator {
+  const dt = usePlayback().framesToSeconds(1);
+  while (true) {
+    value(value() + unwrap(rate) * dt);
+    yield;
+  }
 }

@@ -1,4 +1,4 @@
-import {Circle, Layout, Line, makeScene2D, Node, Txt} from '@motion-canvas/2d';
+import {Circle, Layout, Line, makeScene2D, Node} from '@motion-canvas/2d';
 import {
   all,
   chain,
@@ -9,7 +9,8 @@ import {
 } from '@motion-canvas/core';
 import {
   Background,
-  Caption,
+  Captions,
+  Grain,
   duration,
   ease,
   fadeOut,
@@ -28,7 +29,7 @@ import {
 export default makeScene2D(function* (view) {
   const stars = createRef<Node>();
   const sun = createRef<Planet>();
-  const caption = createRef<Txt>();
+  const captions = createRef<Captions>();
   const protons = createRefArray<Circle>();
   const helium = createRef<Circle>();
   const flash = createRef<Circle>();
@@ -63,12 +64,13 @@ export default makeScene2D(function* (view) {
       <Layout ref={label} y={180} opacity={0}>
         <Label text="Helium" color={palette.mint} textColor={palette.ink} />
       </Layout>
-      <Caption textRef={caption} />
+      <Grain />
+      <Captions ref={captions} />
     </>,
   );
 
   // Subtitles follow the voiceover line by line (text + timing from voiceover.json).
-  yield voCaptions(caption());
+  yield voCaptions(captions());
 
   // — Beat 1: a star appears.
   yield* waitForVO('star');

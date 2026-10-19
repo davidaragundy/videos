@@ -3,6 +3,7 @@
  *
  *   pnpm new "Why Do Stars Shine?"
  *   pnpm new "Why Do Stars Shine?" --slug stars
+ *   pnpm new "How Waves Work" --vertical      (1080×1920 for TikTok / Reels / Shorts)
  */
 import {
   cpSync,
@@ -21,10 +22,13 @@ const templateDir = join(root, 'templates', 'video');
 const args = process.argv.slice(2);
 const slugFlag = args.indexOf('--slug');
 const customSlug = slugFlag >= 0 ? args.splice(slugFlag, 2)[1] : undefined;
+const verticalFlag = args.indexOf('--vertical');
+const vertical = verticalFlag >= 0;
+if (vertical) args.splice(verticalFlag, 1);
 const title = args.join(' ').trim();
 
 if (!title) {
-  console.error('Usage: pnpm new "Video Title" [--slug short-name]');
+  console.error('Usage: pnpm new "Video Title" [--slug short-name] [--vertical]');
   process.exit(1);
 }
 
@@ -61,7 +65,13 @@ const fill = (dir: string) => {
     } else if (/\.(ts|tsx|md|meta)$/.test(entry)) {
       const content = readFileSync(path, 'utf8')
         .replaceAll('{{TITLE}}', title.replaceAll("'", "\\'"))
-        .replaceAll('{{SLUG}}', slug);
+        .replaceAll('{{SLUG}}', slug)
+        .replace(
+          "format: 'landscape'",
+          vertical ? "format: 'vertical'" : "format: 'landscape'",
+        )
+        .replaceAll('{{WIDTH}}', vertical ? '1080' : '1920')
+        .replaceAll('{{HEIGHT}}', vertical ? '1920' : '1080');
       writeFileSync(path, content);
     }
   }

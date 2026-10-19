@@ -8,7 +8,7 @@ All videos live in one repo and share a single design system: fonts, colours, co
 ```bash
 pnpm install
 pnpm dev            # opens the editor at http://localhost:9000 — pick a video
-pnpm new "Why Is the Sky Blue?"   # scaffold videos/00N-why-is-the-sky-blue
+pnpm new "Why Is the Sky Blue?"   # scaffold videos/00N-why-is-the-sky-blue (add --vertical for TikTok/Reels)
 pnpm run list       # every video and its production status
 pnpm voice 001      # VO from script.md → audio/voiceover.mp3 (ElevenLabs/Fish/OpenAI/Google, or --provider recorded); audio isn't in git, re-run after cloning
 pnpm typecheck
