@@ -14,6 +14,9 @@ pnpm voice 001      # VO from script.md → audio/voiceover.mp3 (ElevenLabs/Fish
 pnpm typecheck
 ```
 
+Open the editor in **Chrome** (or another Chromium browser). Safari doesn't play the voiceover in
+the editor; exports are unaffected. The editor starts muted: press **M** to hear audio.
+
 Render from the editor: **Video Settings → Render** (FFmpeg → MP4, written to `output/`).
 
 ## Layout

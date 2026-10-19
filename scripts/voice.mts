@@ -381,57 +381,79 @@ if (recorded) {
 }
 
 // ---------------------------------------------------------------------------------------------
-// Measure + concatenate
+// Decode + assemble
 
-function run(args: string[]) {
-  const r = spawnSync(ffmpeg.path, ['-hide_banner', ...args], {encoding: 'utf8'});
-  if (r.status !== 0)
-    fail(`ffmpeg failed:\n${r.stderr.split('\n').slice(-15).join('\n')}`);
-  return r.stderr;
+// Every clip is decoded once to raw 16-bit mono PCM, and the voiceover is assembled from those
+// exact samples. Durations are sample counts, so voiceover.json matches the MP3 to the sample —
+// no per-clip measuring error that drifts over a long script (AAC/MP3 priming, frame rounding).
+const RATE = 44100;
+const BYTES_PER_SAMPLE = 2;
+
+/** Decode a clip (optionally filtered) to raw s16le mono PCM at RATE. */
+function decode(file: string, filter = ''): Buffer {
+  const af = `${filter}aformat=sample_fmts=s16:sample_rates=${RATE}:channel_layouts=mono`;
+  const r = spawnSync(
+    ffmpeg.path,
+    [
+      '-hide_banner',
+      '-loglevel',
+      'error',
+      '-i',
+      file,
+      '-af',
+      af,
+      '-f',
+      's16le',
+      'pipe:1',
+    ],
+    {maxBuffer: 1024 * 1024 * 1024},
+  );
+  if (r.status !== 0) fail(`ffmpeg could not decode ${file}:\n${r.stderr.toString()}`);
+  return r.stdout;
 }
 
-/** Exact duration by decoding the file (mp3 headers alone can be off). */
-function durationOf(file: string, filter = '') {
-  const af = filter ? ['-af', filter.replace(/,$/, '')] : [];
-  const log = run(['-i', file, ...af, '-f', 'null', '-']);
-  const times = [...log.matchAll(/time=(\d+):(\d+):(\d+(?:\.\d+)?)/g)];
-  const last = times.at(-1);
-  if (!last) fail(`Could not read the duration of ${file}`);
-  return Number(last![1]) * 3600 + Number(last![2]) * 60 + Number(last![3]);
-}
+const silence = (seconds: number) =>
+  Buffer.alloc(Math.round(seconds * RATE) * BYTES_PER_SAMPLE);
+const secondsOf = (pcm: Buffer) => pcm.length / BYTES_PER_SAMPLE / RATE;
 
 const clipFilter = recorded && !opts['no-trim'] ? `${TRIM_SILENCE},` : '';
 const clips = lines.map((line, i) => {
   const path = join(linesDir, clipFiles[i]);
-  return {line, path, duration: durationOf(path, clipFilter)};
+  const pcm = decode(path, clipFilter);
+  return {line, path, pcm, duration: secondsOf(pcm)};
 });
 
-const inputs = ['-f', 'lavfi', '-t', String(intro), '-i', 'anullsrc=r=44100:cl=mono'];
-const filters = ['[0:a]aformat=sample_rates=44100:channel_layouts=mono[s0]'];
+const parts: Buffer[] = [silence(intro)];
 clips.forEach((clip, i) => {
-  inputs.push('-i', clip.path);
-  const pad = `,apad=pad_dur=${i < clips.length - 1 ? gap : tail}`;
-  filters.push(
-    `[${i + 1}:a]${clipFilter}aformat=sample_rates=44100:channel_layouts=mono${pad}[s${i + 1}]`,
-  );
+  parts.push(clip.pcm, silence(i < clips.length - 1 ? gap : tail));
 });
-const labels = clips.map((_, i) => `[s${i + 1}]`).join('');
-filters.push(`[s0]${labels}concat=n=${clips.length + 1}:v=0:a=1[out]`);
 
 const outPath = join(videoDir, 'audio', 'voiceover.mp3');
-run([
-  '-y',
-  ...inputs,
-  '-filter_complex',
-  filters.join(';'),
-  '-map',
-  '[out]',
-  '-c:a',
-  'libmp3lame',
-  '-b:a',
-  '192k',
-  outPath,
-]);
+const encoded = spawnSync(
+  ffmpeg.path,
+  [
+    '-hide_banner',
+    '-loglevel',
+    'error',
+    '-y',
+    '-f',
+    's16le',
+    '-ar',
+    String(RATE),
+    '-ac',
+    '1',
+    '-i',
+    'pipe:0',
+    '-c:a',
+    'libmp3lame',
+    '-b:a',
+    '192k',
+    outPath,
+  ],
+  {input: Buffer.concat(parts), maxBuffer: 1024 * 1024 * 64},
+);
+if (encoded.status !== 0)
+  fail(`ffmpeg could not encode the voiceover:\n${encoded.stderr}`);
 
 // ---------------------------------------------------------------------------------------------
 // Timestamps
@@ -441,10 +463,10 @@ const fmt = (t: number) => {
   return `${m}:${(t - m * 60).toFixed(2).padStart(5, '0')}`;
 };
 
-let t = intro;
+let t = secondsOf(silence(intro));
 const events = clips.map((clip, i) => {
   const start = t;
-  t += clip.duration + (i < clips.length - 1 ? gap : 0);
+  t += clip.duration + (i < clips.length - 1 ? secondsOf(silence(gap)) : 0);
   return {
     scene: clip.line.scene,
     event: clip.line.event,
